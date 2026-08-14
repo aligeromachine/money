@@ -1,0 +1,12 @@
+.Strip {
+  width: 100%;
+  height: 1mm;
+}
+
+.bgcBlue {
+  background-color: rgb(65, 119, 220);
+}
+
+.bgcred {
+  background-color: rgb(220, 96, 65);
+}

@@ -1,0 +1,48 @@
+import React from 'react';
+import { handleDeleteRow } from '../../../components/action/Action';
+import { deleteShopRow, getShopRow } from '../../../services/shop/request';
+import { useModalContent } from '../../../components/hook/ModalContext';
+import st from '../../../scss/column/row.module.css';
+
+export const columnsTbl = () => {
+     const { openModal } = useModalContent();
+    const openWithEdit = async id => {
+        await getShopRow(id);
+        openModal();
+    };
+
+    return [
+        {
+            accessorKey: 'id',
+            header: 'Id',
+            size: 100,
+        },
+        {
+            accessorKey: 'created',
+            header: 'Created',
+        },
+        {
+            accessorKey: 'title',
+            header: 'Title',
+        },
+        {
+            accessorKey: 'address',
+            header: 'Address',
+        },
+        {
+            accessorKey: null,
+            header: 'Action',
+            cell: ({ row }) => (
+                <span>
+                    <i onClick={() => handleDeleteRow(row.original.id, deleteShopRow)}>
+                        <img className={st.iconMl} src={'/static/img/delete.png'} height={24} width={24} />
+                    </i>
+
+                    <i onClick={() => openWithEdit(row.original.id)}>
+                        <img className={st.iconMl} src={'/static/img/edit.png'} height={24} width={24} />
+                    </i>
+                </span>
+            ),
+        },
+    ];
+};

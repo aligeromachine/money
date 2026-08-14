@@ -1,0 +1,170 @@
+// src/BasicTable.jsx
+import { useEffect, useState } from 'react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  getPaginationRowModel,
+  flexRender,
+} from '@tanstack/react-table';
+import st from './BasicTable.module.css';
+import { CButton, CFormInput, CInputGroup, CInputGroupText } from '@coreui/react';
+
+export function BasicTable({ columns, onOffset, data, total, limit, offset }) {
+    const [pageOnOffset, setPageOnOffset] = useState(0);
+    const totalPages = Math.floor(total / limit) + 1;
+    const currentPage = offset + 1;
+    const [globalFilter, setGlobalFilter] = useState('');
+    const [sorting, setSorting] = useState([]);
+
+    useEffect(() => {
+        onOffset(offset);
+        setPageOnOffset(offset + 1);
+    }, []);
+
+    const table = useReactTable({
+        data,
+        columns,
+        state: {
+            globalFilter, // Manage the global filter state
+            sorting, // Manage the sorting state
+        },
+        onGlobalFilterChange: setGlobalFilter, // Update the global filter state when it changes
+        onSortingChange: setSorting, // Update the sorting state when sorting changes
+        getCoreRowModel: getCoreRowModel(), // Core row model for displaying rows
+        getFilteredRowModel: getFilteredRowModel(), // Enable filtering functionality
+        getSortedRowModel: getSortedRowModel(), // Enable sorting functionality
+        getPaginationRowModel: getPaginationRowModel(),
+        manualPagination: true, // Важно: ручное управление пагинацией
+    });
+
+    if (!data || data.length === 0) return <div>Загрузка...</div>;
+
+    return (
+        <div className="card-block table-border-style">
+            <div className="table-responsive">
+                <input
+                    type="text"
+                    value={globalFilter}
+                    onChange={e => setGlobalFilter(e.target.value)} // Update filter value on user input
+                    placeholder="Search..."
+                    style={{ marginBottom: '10px', padding: '5px', width: '100%' }}
+                />
+                <table className={st.table}>
+                    <thead>
+                        {table.getHeaderGroups().map(headerGroup => (
+                            <tr key={headerGroup.id}>
+                                {headerGroup.headers.map(header => (
+                                    <th
+                                        key={header.id}
+                                        colSpan={header.colSpan}
+                                        onClick={header.column.getToggleSortingHandler()} // Add sorting on column headers
+                                        style={{
+                                            cursor: header.column.getCanSort() ? 'pointer' : 'default', // Indicate sortable columns with a pointer cursor
+                                        }}
+                                        className={st.th}
+                                    >
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                  header.column.columnDef.header, // Render the header content
+                                                  header.getContext()
+                                              )}
+                                        {{
+                                            asc: ' 🔼', // Display ascending sort indicator
+                                            desc: ' 🔽', // Display descending sort indicator
+                                        }[header.column.getIsSorted()] ?? null}
+                                    </th>
+                                ))}
+                            </tr>
+                        ))}
+                    </thead>
+                    <tbody>
+                        {table.getRowModel().rows.map(row => (
+                            <tr key={row.id}>
+                                {row.getVisibleCells().map(cell => (
+                                    <td key={cell.id} className={st.td}>
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
+                {/* Пагинация */}
+                <div>
+                    {/* Информация о странице */}
+                    <div className={st.divSpaceDetween}>
+                        <span>
+                            <strong>Всего записей: {total}</strong>
+                        </span>
+                        <span>
+                            <strong>
+                                Страница {currentPage} из {totalPages}
+                            </strong>
+                        </span>
+                    </div>
+
+                    {/* Элементы управления пагинацией */}
+                    <div className={st.flexPaginations}>
+                        <div>
+                            <CInputGroup>
+                                {totalPages !== 1 && (
+                                    <>
+                                        <CInputGroupText>@</CInputGroupText>
+                                        <CFormInput
+                                            value={pageOnOffset}
+                                            onChange={e => {
+                                                e.preventDefault();
+                                                const inputValue = e.target.value;
+                                                if (/^\d*$/.test(inputValue)) {
+                                                    if (inputValue > 0 && inputValue <= totalPages) {
+                                                        setPageOnOffset(inputValue);
+                                                    }
+                                                }
+                                            }}
+                                        ></CFormInput>
+                                        <CButton
+                                            onClick={() => onOffset(pageOnOffset - 1)}
+                                            color="info"
+                                            className="rounded-0"
+                                            style={{ marginRight: '10px' }}
+                                        >
+                                            Перейти
+                                        </CButton>
+                                    </>
+                                )}
+
+                                <CButton onClick={() => onOffset(0)} disabled={currentPage === 1} color="secondary" className="rounded-0">
+                                    Первая
+                                </CButton>
+                                <CButton onClick={() => onOffset(offset - 1)} disabled={currentPage === 1} color="light" className="rounded-0">
+                                    Назад
+                                </CButton>
+
+                                <CButton
+                                    onClick={() => onOffset(offset + 1)}
+                                    disabled={totalPages === currentPage}
+                                    color="light"
+                                    className="rounded-0"
+                                >
+                                    Вперед
+                                </CButton>
+                                <CButton
+                                    color="secondary"
+                                    className="rounded-0"
+                                    onClick={() => onOffset(totalPages - 1)}
+                                    disabled={totalPages === currentPage}
+                                >
+                                    Последняя
+                                </CButton>
+                            </CInputGroup>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

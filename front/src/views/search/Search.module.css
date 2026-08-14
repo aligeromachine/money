@@ -1,0 +1,7 @@
+.bgcGray {
+    background-color: rgb(213, 214, 214);
+}
+.buttonWrapper {
+    display: flex;
+    gap: 20px; /* Space between all children */
+}
